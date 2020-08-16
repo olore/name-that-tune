@@ -1,13 +1,13 @@
 <template>
   <v-container>
-    <Search />
-
     <v-row>
       <v-col cols="12">
         <h2>Player</h2>
 
         <div>
-          <v-btn class="mr-3" v-on:click="playPause()">Play/Pause</v-btn>
+          <v-btn class="mr-3" v-on:click="playPause()">
+            {{ playPauseText }}
+          </v-btn>
           <v-btn
             class="mr-3"
             v-if="hasStartedPlaying && !isPlaying && !shouldReveal"
@@ -18,14 +18,38 @@
             >Next</v-btn
           >
         </div>
+      </v-col>
+    </v-row>
 
-        <div v-if="shouldReveal">
-          <h3>{{ track.name }} by {{ track.artists[0].name }}</h3>
-          <h3>
-            {{ track.album_name }} released {{ track.album.release_date }}
-          </h3>
-          <img :src="track.album.images[0].url" height="300" alt="Cover Art" />
-        </div>
+    <v-row v-if="shouldReveal">
+      <v-col cols="12">
+        <v-row>
+          <v-col cols="12">
+            <v-btn v-if="!shouldDisplayTrack" v-on:click="showTrackName()"
+              >Reveal Song Name</v-btn
+            >
+            <h3 v-if="shouldDisplayTrack">Song Name: {{ track.name }}</h3>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="12">
+            <v-btn v-if="!shouldDisplayArtist" v-on:click="showArtistName()"
+              >Reveal Artist</v-btn
+            >
+            <h3 v-if="shouldDisplayArtist">
+              Artist: {{ track.artists[0].name }}
+            </h3>
+          </v-col>
+        </v-row>
+        <v-row v-if="shouldDisplayArtist && shouldDisplayTrack">
+          <v-col cols="12">
+            <img
+              :src="track.album.images[0].url"
+              height="300"
+              alt="Cover Art"
+            />
+          </v-col>
+        </v-row>
       </v-col>
     </v-row>
   </v-container>
@@ -35,17 +59,19 @@
 import { store } from "../store";
 import Game from "../Game";
 import Spotify from "../SpotifyService";
-import Search from "./Search";
 
 export default {
   name: "Player",
-  components: { Search },
+  components: {},
   data: function () {
     return {
       sharedState: store.state,
       isPlaying: false,
       shouldReveal: false,
       hasStartedPlaying: false,
+      playPauseText: "Play",
+      shouldDisplayArtist: false,
+      shouldDisplayTrack: false,
     };
   },
   mounted: function () {
@@ -59,28 +85,60 @@ export default {
     this.audiotag.src = "";
   },
   methods: {
+    showTrackName: function () {
+      this.shouldDisplayTrack = true;
+    },
+    showArtistName: function () {
+      this.shouldDisplayArtist = true;
+    },
     next: async function () {
       this.shouldReveal = false;
       this.track = await Spotify.getTrack(Game.nextTrack());
       this.audiotag.src = this.track.preview_url;
+      this.audiotag.addEventListener(
+        "ended",
+        () => {
+          this.isPlaying = false;
+          this.playPauseText = "Play";
+          this.shouldReveal = true;
+        },
+        false
+      );
       await this.audiotag.play();
       this.isPlaying = true;
+      this.playPauseText = "Pause";
+      this.shouldDisplayArtist = false;
+      this.shouldDisplayTrack = false;
     },
     reveal: function () {
       this.shouldReveal = true;
     },
     playPause: async function () {
       if (!this.audiotag.src.includes("mp3")) {
-        const x = Game.nextTrack();
-        this.track = await Spotify.getTrack(x);
+        this.track = await Spotify.getTrack(Game.nextTrack());
         this.audiotag.src = this.track.preview_url;
+        this.audiotag.addEventListener(
+          "ended",
+          () => {
+            console.log("ended");
+            this.isPlaying = false;
+            this.playPauseText = "Play";
+            this.shouldReveal = true;
+          },
+          false
+        );
         await this.audiotag.play();
         this.hasStartedPlaying = true;
         this.isPlaying = true;
+        this.playPauseText = "Pause";
       } else {
-        this.isPlaying
-          ? await this.audiotag.pause()
-          : await this.audiotag.play();
+        if (this.isPlaying) {
+          await this.audiotag.pause();
+          this.playPauseText = "Play";
+        } else {
+          await this.audiotag.play();
+          this.playPauseText = "Pause";
+        }
         this.isPlaying = !this.isPlaying;
       }
     },

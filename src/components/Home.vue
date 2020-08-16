@@ -5,9 +5,14 @@
         <v-btn v-if="!sharedState.token" v-on:click="go()"
           >Allow Spotify
         </v-btn>
-        <div v-if="sharedState.token && sharedState.spotifyReady">
-          <Player />
-        </div>
+      </v-col>
+    </v-row>
+    <v-row v-if="sharedState.token && sharedState.spotifyReady">
+      <v-col cols="6">
+        <Search />
+      </v-col>
+      <v-col cols="6">
+        <Player />
       </v-col>
     </v-row>
   </v-container>
@@ -17,10 +22,11 @@
 import { mdiViewDashboard, mdiCog } from "@mdi/js";
 import { store } from "../store";
 import Player from "./Player";
+import Search from "./Search";
 
 export default {
   name: "Home",
-  components: { Player },
+  components: { Player, Search },
   data: function () {
     return {
       sharedState: store.state,

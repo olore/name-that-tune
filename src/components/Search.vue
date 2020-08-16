@@ -16,7 +16,7 @@
             {{ playlist.name }}
           </li>
         </ul>
-        <v-btn v-on:click="clear()">Start Over</v-btn>
+        <v-btn class="mt-2" v-on:click="clear()">Start Over</v-btn>
       </v-col>
     </v-row>
     <v-row v-if="searchResults.length">
