@@ -7,6 +7,13 @@
         <div>
           <v-btn v-if="!hasStarted" v-on:click="start()">start</v-btn>
           <v-btn v-if="hasStarted" v-on:click="playPause()">Play/Pause</v-btn>
+          <v-btn v-if="hasStarted && !isPlaying" v-on:click="reveal()"
+            >Reveal</v-btn
+          >
+        </div>
+
+        <div v-if="shouldReveal">
+          <h3>{{ track.name }} by {{ track.artists[0].name }}</h3>
         </div>
       </v-col>
     </v-row>
@@ -23,12 +30,16 @@ export default {
   data: function () {
     return {
       sharedState: store.state,
-      audiotag: undefined,
       isPlaying: false,
       hasStarted: false,
+      shouldReveal: false,
     };
   },
   methods: {
+    reveal: function () {
+      this.shouldReveal = true;
+      console.log(this.track.name);
+    },
     playPause: function () {
       this.isPlaying ? this.audiotag.pause() : this.audiotag.play();
       this.isPlaying = !this.isPlaying;
@@ -37,9 +48,9 @@ export default {
       this.audiotag = new Audio();
       this.audiotag.src = "";
       const trackId = "spotify:track:24NwBd5vZ2CK8VOQVnqdxr".split(":")[2];
-      const previewUrl = await Spotify.getPreviewUrl(trackId);
-
-      this.audiotag.src = previewUrl;
+      this.track = await Spotify.getTrack(trackId);
+      console.log(this.track);
+      this.audiotag.src = this.track.preview_url;
       let _volume = 50;
 
       this.audiotag.addEventListener(
