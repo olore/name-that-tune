@@ -8,14 +8,19 @@
           <v-btn class="mr-3" v-on:click="playPause()">Play/Pause</v-btn>
           <v-btn
             class="mr-3"
-            v-if="hasStartedPlaying && !isPlaying"
+            v-if="hasStartedPlaying && !isPlaying && !shouldReveal"
             v-on:click="reveal()"
             >Reveal</v-btn
           >
+          <v-btn v-if="shouldReveal" v-on:click="next()">Next</v-btn>
         </div>
 
         <div v-if="shouldReveal">
           <h3>{{ track.name }} by {{ track.artists[0].name }}</h3>
+          <h3>
+            {{ track.album_name }} released {{ track.album.release_date }}
+          </h3>
+          <img :src="track.album.images[0].url" height="300" alt="Cover Art" />
         </div>
       </v-col>
     </v-row>
@@ -37,7 +42,18 @@ export default {
       hasStartedPlaying: false,
     };
   },
+  mounted: function () {
+    const SPACE_BAR = 32;
+    document.addEventListener("keypress", (evt) => {
+      if (evt.which === SPACE_BAR) {
+        this.playPause();
+      }
+    });
+  },
   methods: {
+    next: function () {
+      console.log("next song");
+    },
     reveal: function () {
       this.shouldReveal = true;
     },
