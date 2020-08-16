@@ -4,6 +4,11 @@ const Game = {
   playlistIds: [],
   currentTrackIndex: -1,
 
+  reset: () => {
+    Game.playlistIds = [];
+    Game.currentTrackIndex = -1;
+  },
+
   nextTrack: () => {
     return Game.playlistIds[++Game.currentTrackIndex];
   },

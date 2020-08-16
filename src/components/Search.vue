@@ -16,6 +16,7 @@
             {{ playlist.name }}
           </li>
         </ul>
+        <v-btn v-on:click="clear()">Start Over</v-btn>
       </v-col>
     </v-row>
     <v-row v-if="searchResults.length">
@@ -48,6 +49,10 @@ export default {
     };
   },
   methods: {
+    clear: async function () {
+      Game.reset();
+      this.playlists = [];
+    },
     search: async function () {
       let x = await Spotify.search(this.query);
       this.searchResults = x.playlists.items;
