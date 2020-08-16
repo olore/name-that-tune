@@ -48,9 +48,15 @@ export default {
         "user-follow-read",
         "user-follow-modify",
       ];
+      let redirectUrl = "http://localhost:8080/spotify-callback";
+
+      if (location.host != "localhost:8080") {
+        redirectUrl = "http://play.olore.net/spotify-callback";
+      }
+
       let params = {
         client_id: "8855e0db4eef4adf86e55df1ee34a8f0",
-        redirect_uri: "http://localhost:8080/spotify-callback",
+        redirect_uri: redirectUrl,
         response_type: "token",
         scope: encodeURIComponent(scopes.join(" ")),
       };
