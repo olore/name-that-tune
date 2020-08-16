@@ -14,9 +14,8 @@
         <v-btn v-if="!sharedState.token" v-on:click="go()"
           >Allow Spotify
         </v-btn>
-        <div v-if="sharedState.token">
-          Hey we are in!
-          <v-btn v-on:click="play()">Play</v-btn>
+        <div v-if="sharedState.token && sharedState.spotifyReady">
+          <Player />
         </div>
       </v-col>
     </v-row>
@@ -26,31 +25,34 @@
 <script>
 import { mdiViewDashboard, mdiCog } from "@mdi/js";
 import { store } from "../store";
+import Player from "./Player";
 
 export default {
   name: "Home",
-  components: {},
+  components: { Player },
   data: function () {
     return {
       sharedState: store.state,
     };
   },
   methods: {
-    play: function () {
-      fetch("https://api.spotify.com/v1/me/player/play", {
-        method: "PUT",
-        headers: {
-          Authorization: "Bearer " + this.sharedState.token,
-        },
-      });
-    },
     go: () => {
       let url = "https://accounts.spotify.com/authorize";
+      let scopes = [
+        "user-read-private",
+        "playlist-read-private",
+        "playlist-modify-public",
+        "playlist-modify-private",
+        "user-library-read",
+        "user-library-modify",
+        "user-follow-read",
+        "user-follow-modify",
+      ];
       let params = {
         client_id: "8855e0db4eef4adf86e55df1ee34a8f0",
         redirect_uri: "http://localhost:8080/spotify-callback",
         response_type: "token",
-        state: "123",
+        scope: encodeURIComponent(scopes.join(" ")),
       };
       let paramString = Object.keys(params)
         .map((k) => {
