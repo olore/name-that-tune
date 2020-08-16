@@ -5,9 +5,11 @@
         <h2>Player</h2>
 
         <div>
-          <v-btn v-if="!hasStarted" v-on:click="start()">start</v-btn>
-          <v-btn v-if="hasStarted" v-on:click="playPause()">Play/Pause</v-btn>
-          <v-btn v-if="hasStarted && !isPlaying" v-on:click="reveal()"
+          <v-btn class="mr-3" v-on:click="playPause()">Play/Pause</v-btn>
+          <v-btn
+            class="mr-3"
+            v-if="hasStartedPlaying && !isPlaying"
+            v-on:click="reveal()"
             >Reveal</v-btn
           >
         </div>
@@ -31,20 +33,28 @@ export default {
     return {
       sharedState: store.state,
       isPlaying: false,
-      hasStarted: false,
       shouldReveal: false,
+      hasStartedPlaying: false,
     };
   },
   methods: {
     reveal: function () {
       this.shouldReveal = true;
-      console.log(this.track.name);
     },
-    playPause: function () {
-      this.isPlaying ? this.audiotag.pause() : this.audiotag.play();
-      this.isPlaying = !this.isPlaying;
+    playPause: async function () {
+      if (this.audiotag === undefined) {
+        await this.loadAudio();
+        await this.audiotag.play();
+        this.hasStartedPlaying = true;
+        this.isPlaying = true;
+      } else {
+        this.isPlaying
+          ? await this.audiotag.pause()
+          : await this.audiotag.play();
+        this.isPlaying = !this.isPlaying;
+      }
     },
-    start: async function () {
+    loadAudio: async function () {
       this.audiotag = new Audio();
       this.audiotag.src = "";
       const trackId = "spotify:track:24NwBd5vZ2CK8VOQVnqdxr".split(":")[2];
@@ -58,9 +68,6 @@ export default {
         async () => {
           console.log("audiotag loadedmetadata");
           this.audiotag.volume = _volume / 100.0;
-          await this.audiotag.play();
-          this.hasStarted = true;
-          this.isPlaying = true;
         },
         false
       );
