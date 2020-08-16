@@ -2,6 +2,27 @@
   <v-container>
     <v-row>
       <v-col cols="12">
+        <h2>Search</h2>
+        <v-text-field label="Regular" name="query" v-model="query">
+        </v-text-field>
+        <v-btn v-on:click="search()">Search</v-btn>
+      </v-col>
+    </v-row>
+    <v-row v-if="results.length">
+      <v-col cols="12">
+        <h2>Search Results</h2>
+        <ul>
+          <li v-for="playlist in results" :key="playlist.id">
+            <a href="#" v-on:click="addPlayList(playlist.id)"
+              >{{ playlist.name }} - {{ playlist.id }}</a
+            >
+          </li>
+        </ul>
+      </v-col>
+    </v-row>
+
+    <v-row>
+      <v-col cols="12">
         <h2>Player</h2>
 
         <div>
@@ -12,7 +33,9 @@
             v-on:click="reveal()"
             >Reveal</v-btn
           >
-          <v-btn v-if="shouldReveal" v-on:click="next()">Next</v-btn>
+          <v-btn v-if="shouldReveal && !isPlaying" v-on:click="next()"
+            >Next</v-btn
+          >
         </div>
 
         <div v-if="shouldReveal">
@@ -29,6 +52,7 @@
 
 <script>
 import { store } from "../store";
+import Game from "../Game";
 import Spotify from "../SpotifyService";
 
 export default {
@@ -40,6 +64,8 @@ export default {
       isPlaying: false,
       shouldReveal: false,
       hasStartedPlaying: false,
+      query: "",
+      results: [],
     };
   },
   mounted: function () {
@@ -49,17 +75,25 @@ export default {
         this.playPause();
       }
     });
+    this.audiotag = new Audio();
+    this.audiotag.src = "";
   },
   methods: {
-    next: function () {
-      console.log("next song");
+    next: async function () {
+      this.shouldReveal = false;
+      this.track = await Spotify.getTrack(Game.nextTrack());
+      this.audiotag.src = this.track.preview_url;
+      await this.audiotag.play();
+      this.isPlaying = true;
     },
     reveal: function () {
       this.shouldReveal = true;
     },
     playPause: async function () {
-      if (this.audiotag === undefined) {
-        await this.loadAudio();
+      if (!this.audiotag.src.includes("mp3")) {
+        const x = Game.nextTrack();
+        this.track = await Spotify.getTrack(x);
+        this.audiotag.src = this.track.preview_url;
         await this.audiotag.play();
         this.hasStartedPlaying = true;
         this.isPlaying = true;
@@ -70,30 +104,17 @@ export default {
         this.isPlaying = !this.isPlaying;
       }
     },
-    loadAudio: async function () {
-      this.audiotag = new Audio();
-      this.audiotag.src = "";
-      const trackId = "spotify:track:24NwBd5vZ2CK8VOQVnqdxr".split(":")[2];
-      this.track = await Spotify.getTrack(trackId);
-      console.log(this.track);
-      this.audiotag.src = this.track.preview_url;
-      let _volume = 50;
-
-      this.audiotag.addEventListener(
-        "loadedmetadata",
-        async () => {
-          console.log("audiotag loadedmetadata");
-          this.audiotag.volume = _volume / 100.0;
-        },
-        false
-      );
-      this.audiotag.addEventListener(
-        "ended",
-        function () {
-          console.log("audiotag ended");
-        },
-        false
-      );
+    search: async function () {
+      let x = await Spotify.search(this.query);
+      this.results = x.playlists.items;
+    },
+    addPlayList: async function (playlistId) {
+      let x = await Spotify.getTracks(playlistId);
+      let trackIds = x.items
+        .filter((it) => it.track && it.track.preview_url !== null)
+        .map((item) => item.track.id);
+      this.results = [];
+      Game.addToPlaylist(trackIds);
     },
   },
 };
