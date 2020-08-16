@@ -2,15 +2,6 @@
   <v-container>
     <v-row>
       <v-col cols="12">
-        <div>Here is a test</div>
-        <div>Here is a test</div>
-      </v-col>
-    </v-row>
-
-    <v-row>
-      <v-col cols="12">
-        <h2>Hello</h2>
-
         <v-btn v-if="!sharedState.token" v-on:click="go()"
           >Allow Spotify
         </v-btn>

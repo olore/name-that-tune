@@ -1,25 +1,6 @@
 <template>
   <v-container>
-    <v-row>
-      <v-col cols="12">
-        <h2>Search</h2>
-        <v-text-field label="Regular" name="query" v-model="query">
-        </v-text-field>
-        <v-btn v-on:click="search()">Search</v-btn>
-      </v-col>
-    </v-row>
-    <v-row v-if="results.length">
-      <v-col cols="12">
-        <h2>Search Results</h2>
-        <ul>
-          <li v-for="playlist in results" :key="playlist.id">
-            <a href="#" v-on:click="addPlayList(playlist.id)"
-              >{{ playlist.name }} - {{ playlist.id }}</a
-            >
-          </li>
-        </ul>
-      </v-col>
-    </v-row>
+    <Search />
 
     <v-row>
       <v-col cols="12">
@@ -54,18 +35,17 @@
 import { store } from "../store";
 import Game from "../Game";
 import Spotify from "../SpotifyService";
+import Search from "./Search";
 
 export default {
   name: "Player",
-  components: {},
+  components: { Search },
   data: function () {
     return {
       sharedState: store.state,
       isPlaying: false,
       shouldReveal: false,
       hasStartedPlaying: false,
-      query: "",
-      results: [],
     };
   },
   mounted: function () {
@@ -103,18 +83,6 @@ export default {
           : await this.audiotag.play();
         this.isPlaying = !this.isPlaying;
       }
-    },
-    search: async function () {
-      let x = await Spotify.search(this.query);
-      this.results = x.playlists.items;
-    },
-    addPlayList: async function (playlistId) {
-      let x = await Spotify.getTracks(playlistId);
-      let trackIds = x.items
-        .filter((it) => it.track && it.track.preview_url !== null)
-        .map((item) => item.track.id);
-      this.results = [];
-      Game.addToPlaylist(trackIds);
     },
   },
 };

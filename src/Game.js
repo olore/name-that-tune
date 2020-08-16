@@ -1,3 +1,5 @@
+import shuffle from "lodash.shuffle";
+
 const Game = {
   playlistIds: [],
   currentTrackIndex: -1,
@@ -7,7 +9,11 @@ const Game = {
   },
 
   addToPlaylist: (trackIds) => {
-    Game.playlistIds = [...Game.playlistIds, ...trackIds];
+    Game.playlistIds = shuffle([...Game.playlistIds, ...trackIds]);
+  },
+
+  hasTracks: () => {
+    return Game.playlistIds.length !== 0;
   },
 };
 
